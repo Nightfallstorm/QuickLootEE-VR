@@ -55,6 +55,4 @@ namespace stl
 
 #define DLLEXPORT __declspec(dllexport)
 
-#include "Plugin.h"
-
 #include "Settings.h"

@@ -827,7 +827,7 @@ namespace Items
 			kType::DefaultArmor  // 27
 		};
 
-		UINT32 index = 0;
+		std::uint32_t index = 0;
 
 		if (armor->IsLightArmor()) {
 			index = 0;
@@ -882,7 +882,7 @@ namespace Items
 		if (potion->IsFood()) {
 			type = kType::DefaultFood;
 
-			const static UINT32 ITMPosionUse = 0x000B6435;
+			const static std::uint32_t ITMPosionUse = 0x000B6435;
 			if (potion->data.consumptionSound && potion->data.consumptionSound->formID == ITMPosionUse)
 				type = kType::FoodWine;
 		} else if (potion->IsPoison()) {
@@ -929,31 +929,31 @@ namespace Items
 	{
 		kType type = kType::DefaultMisc;
 
-		static const UINT32 LockPick = 0x00000A;
-		static const UINT32 Gold = 0x00000F;
-		static const UINT32 Leather01 = 0x000DB5D2;
-		static const UINT32 LeatherStrips = 0x000800E4;
+		static const std::uint32_t LockPick = 0x00000A;
+		static const std::uint32_t Gold = 0x00000F;
+		static const std::uint32_t Leather01 = 0x000DB5D2;
+		static const std::uint32_t LeatherStrips = 0x000800E4;
 
-		static const UINT32 VendorItemAnimalHideFormId = 0x0914EA;
-		static const UINT32 VendorItemDaedricArtifactFormId = 0x000917E8;
-		static const UINT32 VendorItemGemFormId = 0x000914ED;
-		static const UINT32 VendorItemToolFormId = 0x000914EE;
-		static const UINT32 VendorItemAnimalPartFormId = 0x000914EB;
-		static const UINT32 VendorItemOreIngotFormId = 0x000914EC;
-		static const UINT32 VendorItemClutterFormId = 0x000914E9;
-		static const UINT32 VendorItemFirewoodFormId = 0x000BECD7;
+		static const std::uint32_t VendorItemAnimalHideFormId = 0x0914EA;
+		static const std::uint32_t VendorItemDaedricArtifactFormId = 0x000917E8;
+		static const std::uint32_t VendorItemGemFormId = 0x000914ED;
+		static const std::uint32_t VendorItemToolFormId = 0x000914EE;
+		static const std::uint32_t VendorItemAnimalPartFormId = 0x000914EB;
+		static const std::uint32_t VendorItemOreIngotFormId = 0x000914EC;
+		static const std::uint32_t VendorItemClutterFormId = 0x000914E9;
+		static const std::uint32_t VendorItemFirewoodFormId = 0x000BECD7;
 
-		static const UINT32 RubyDragonClaw = 0x04B56C;
-		static const UINT32 IvoryDragonClaw = 0x0AB7BB;
-		static const UINT32 GlassCraw = 0x07C260;
-		static const UINT32 EbonyCraw = 0x05AF48;
-		static const UINT32 EmeraldDragonClaw = 0x0ED417;
-		static const UINT32 DiamondClaw = 0x0AB375;
-		static const UINT32 IronClaw = 0x08CDFA;
-		static const UINT32 CoralDragonClaw = 0x0B634C;
-		static const UINT32 E3GoldenClaw = 0x0999E7;
-		static const UINT32 SapphireDragonClaw = 0x0663D7;
-		static const UINT32 MS13GoldenClaw = 0x039647;
+		static const std::uint32_t RubyDragonClaw = 0x04B56C;
+		static const std::uint32_t IvoryDragonClaw = 0x0AB7BB;
+		static const std::uint32_t GlassCraw = 0x07C260;
+		static const std::uint32_t EbonyCraw = 0x05AF48;
+		static const std::uint32_t EmeraldDragonClaw = 0x0ED417;
+		static const std::uint32_t DiamondClaw = 0x0AB375;
+		static const std::uint32_t IronClaw = 0x08CDFA;
+		static const std::uint32_t CoralDragonClaw = 0x0B634C;
+		static const std::uint32_t E3GoldenClaw = 0x0999E7;
+		static const std::uint32_t SapphireDragonClaw = 0x0663D7;
+		static const std::uint32_t MS13GoldenClaw = 0x039647;
 
 		if (misc->formID == LockPick)
 			type = kType::MiscLockPick;
@@ -987,8 +987,8 @@ namespace Items
 	{
 		kType type = kType::MiscSoulGem;
 
-		const static UINT32 DA01SoulGemAzurasStar = 0x063B27;
-		const static UINT32 DA01SoulGemBlackStar = 0x063B29;
+		const static std::uint32_t DA01SoulGemAzurasStar = 0x063B27;
+		const static std::uint32_t DA01SoulGemBlackStar = 0x063B29;
 
 		if (gem->formID == DA01SoulGemBlackStar || gem->formID == DA01SoulGemAzurasStar) {
 			type = kType::SoulGemAzura;
@@ -1017,8 +1017,8 @@ namespace Items
 	{
 		kType type = kType::DefaultBook;
 
-		const static UINT32 VendorItemRecipeFormID = 0x000F5CB0;
-		const static UINT32 VendorItemSpellTomeFormID = 0x000937A5;
+		const static std::uint32_t VendorItemRecipeFormID = 0x000F5CB0;
+		const static std::uint32_t VendorItemSpellTomeFormID = 0x000937A5;
 
 		if (book->data.type.underlying() == 0xFF || book->HasKeywordID(VendorItemRecipeFormID)) {
 			type = kType::BookNote;
@@ -1075,7 +1075,7 @@ namespace Items
 	static bool MagicDisallowEnchanting(const RE::BGSKeywordForm* pKeywords)
 	{
 		if (pKeywords) {
-			for (uint32_t k = 0; k < pKeywords->numKeywords; k++) {
+			for (std::uint32_t_t k = 0; k < pKeywords->numKeywords; k++) {
 				if (pKeywords->keywords[k]) {
 					auto keyword = pKeywords->GetKeywordAt(k).value_or(nullptr);
 					if (keyword) {
