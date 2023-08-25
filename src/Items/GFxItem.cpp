@@ -891,7 +891,7 @@ namespace Items
 			type = kType::DefaultPotion;
 
 			//MagicItem::EffectItem* pEffect = CALL_MEMBER_FN(potion, GetCostliestEffectItem)(5, false);
-			Effect* pEffect = potion->GetCostliestEffectItem(5, false);
+			Effect* pEffect = potion->GetCostliestEffectItem(RE::MagicSystem::Delivery::kTotal, false);
 			if (pEffect && pEffect->baseEffect) {
 				ActorValue primaryValue = pEffect->baseEffect->GetMagickSkill();
 
@@ -1075,7 +1075,7 @@ namespace Items
 	static bool MagicDisallowEnchanting(const RE::BGSKeywordForm* pKeywords)
 	{
 		if (pKeywords) {
-			for (std::uint32_t_t k = 0; k < pKeywords->numKeywords; k++) {
+			for (std::uint32_t k = 0; k < pKeywords->numKeywords; k++) {
 				if (pKeywords->keywords[k]) {
 					auto keyword = pKeywords->GetKeywordAt(k).value_or(nullptr);
 					if (keyword) {

@@ -66,73 +66,40 @@ namespace Events
 
 	void LifeStateManager::Register()
 	{
-		if (REL::Module::IsAE()) {
-			struct Patch :
-				Xbyak::CodeGenerator
+		struct Patch :
+			Xbyak::CodeGenerator
+		{
+			explicit Patch(std::uintptr_t a_target)
 			{
-				explicit Patch(std::uintptr_t a_target)
-				{
-					mov(rcx, rdi);  // rdi == Actor* this
+				mov(rcx, rsi);  // rsi == Actor* this
 
-					pop(r15);
-					pop(r14);
-					pop(rdi);
-					pop(rsi);
-					pop(rbp);
+				pop(r15);
+				pop(r14);
+				pop(r12);
+				pop(rdi);
+				pop(rsi);
+				pop(rbx);
+				pop(rbp);
 
-					mov(rax, a_target);
-					jmp(rax);
-				}
-			};
+				mov(rax, a_target);
+				jmp(rax);
+			}
+		};
 
-			constexpr std::size_t begin = 0x494;
-			constexpr std::size_t end = 0x49B;
-			constexpr std::size_t size = end - begin;
-			static_assert(size >= 6);
+		constexpr std::size_t begin = 0x503;
+		constexpr std::size_t end = 0x50D;
+		constexpr std::size_t size = end - begin;
+		static_assert(size >= 6);
 
-			REL::Relocation<std::uintptr_t> target{ REL::ID(37612), begin };  // Actor::SetLifeState
-			REL::safe_fill(target.address(), REL::INT3, size);
+		REL::Relocation<std::uintptr_t> target{ REL::ID(36604), begin };  // Actor::SetLifeState
+		REL::safe_fill(target.address(), REL::INT3, size);
 
-			auto& trampoline = SKSE::GetTrampoline();
-			Patch p{ reinterpret_cast<std::uintptr_t>(OnLifeStateChanged) };
-			trampoline.write_branch<6>(
-				target.address(),
-				trampoline.allocate(p));
-		} else {
-			struct Patch :
-				Xbyak::CodeGenerator
-			{
-				explicit Patch(std::uintptr_t a_target)
-				{
-					mov(rcx, rsi);  // rsi == Actor* this
-
-					pop(r15);
-					pop(r14);
-					pop(r12);
-					pop(rdi);
-					pop(rsi);
-					pop(rbx);
-					pop(rbp);
-
-					mov(rax, a_target);
-					jmp(rax);
-				}
-			};
-
-			constexpr std::size_t begin = 0x503;
-			constexpr std::size_t end = 0x50D;
-			constexpr std::size_t size = end - begin;
-			static_assert(size >= 6);
-
-			REL::Relocation<std::uintptr_t> target{ REL::ID(36604), begin };  // Actor::SetLifeState
-			REL::safe_fill(target.address(), REL::INT3, size);
-
-			auto& trampoline = SKSE::GetTrampoline();
-			Patch p{ reinterpret_cast<std::uintptr_t>(OnLifeStateChanged) };
-			trampoline.write_branch<6>(
-				target.address(),
-				trampoline.allocate(p));
-		}
+		auto& trampoline = SKSE::GetTrampoline();
+		Patch p{ reinterpret_cast<std::uintptr_t>(OnLifeStateChanged) };
+		trampoline.write_branch<6>(
+			target.address(),
+			trampoline.allocate(p));
+		
 
 		logger::info("Registered {}"sv, typeid(LifeStateManager).name());
 	}

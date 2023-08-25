@@ -56,7 +56,7 @@ namespace Input
 			return;
 		}
 
-		player->StartGrabObject();
+		player->StartGrabObject(RE::VR_DEVICE::kHeadset); // TODO: Take a look at this
 		if (!player->IsGrabbing()) {
 			return;
 		}

@@ -44,32 +44,17 @@ namespace Input
 	public:
 		static void Install()
 		{
-			if (REL::Module::IsAE()) {
-				constexpr std::array locations{
-					std::make_pair<std::uint64_t, std::size_t>(53270, 0x17),
-					std::make_pair<std::uint64_t, std::size_t>(53299, 0x17),
-					std::make_pair<std::uint64_t, std::size_t>(68534, 0x165),
-					std::make_pair<std::uint64_t, std::size_t>(68540, 0x266),
-				};
+			constexpr std::array locations{
+				std::make_pair<std::uint64_t, std::size_t>(52374, 0x17),
+				std::make_pair<std::uint64_t, std::size_t>(52400, 0x17),
+				std::make_pair<std::uint64_t, std::size_t>(67234, 0x113),
+				std::make_pair<std::uint64_t, std::size_t>(67240, 0x17B),
+			};
 
-				auto& trampoline = SKSE::GetTrampoline();
-				for (const auto& [id, offset] : locations) {
-					REL::Relocation<std::uintptr_t> target(REL::ID(id), offset);
-					_RefreshLinkedMappings = trampoline.write_call<5>(target.address(), RefreshLinkedMappings);
-				}
-			} else {
-				constexpr std::array locations{
-					std::make_pair<std::uint64_t, std::size_t>(52374, 0x17),
-					std::make_pair<std::uint64_t, std::size_t>(52400, 0x17),
-					std::make_pair<std::uint64_t, std::size_t>(67234, 0x113),
-					std::make_pair<std::uint64_t, std::size_t>(67240, 0x17B),
-				};
-
-				auto& trampoline = SKSE::GetTrampoline();
-				for (const auto& [id, offset] : locations) {
-					REL::Relocation<std::uintptr_t> target(REL::ID(id), offset);
-					_RefreshLinkedMappings = trampoline.write_call<5>(target.address(), RefreshLinkedMappings);
-				}
+			auto& trampoline = SKSE::GetTrampoline();
+			for (const auto& [id, offset] : locations) {
+				REL::Relocation<std::uintptr_t> target(REL::ID(id), offset);
+				_RefreshLinkedMappings = trampoline.write_call<5>(target.address(), RefreshLinkedMappings);
 			}
 		}
 
