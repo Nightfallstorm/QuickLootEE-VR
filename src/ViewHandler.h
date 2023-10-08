@@ -106,16 +106,33 @@ private:
 		if (controlMap && menuControls) {
 			const auto& priorityStack = controlMap->contextPriorityStack;
 			if (!src ||
+				src->IsLocked()/* ||
+				 src->IsActivationBlocked() */) {
+				logger::info("Source Broken");
+				//Disable();
+			}
+
+			if (/* menuControls->InBeastForm() || */ // TODO: Beast Form broken most likely, as
+				// VR has extra variable, check and fix!
+				priorityStack.empty() ||
+				priorityStack.back() != RE::UserEvents::INPUT_CONTEXT_ID::kGameplay) {
+				logger::info("Menu Broken");
+				//Disable();
+			}
+
+			if (!src ||
 				src->IsLocked() ||
 				src->IsActivationBlocked() ||
 				!dst ||
 				dst->IsInKillMove() ||
 				dst->GetOccupiedFurniture() ||
-				menuControls->InBeastForm() ||
+				//menuControls->InBeastForm() ||
 				priorityStack.empty() ||
 				priorityStack.back() != RE::UserEvents::INPUT_CONTEXT_ID::kGameplay) {
+				logger::info("Disabling HUD");
 				Disable();
 			} else {
+				logger::info("Enabling HUD");
 				Enable();
 			}
 		}

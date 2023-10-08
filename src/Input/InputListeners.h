@@ -1,5 +1,7 @@
 #pragma once
 
+#include "Loot.h"
+
 namespace Input
 {
 	class IHandler
@@ -111,6 +113,7 @@ namespace Input
 	protected:
 		void DoHandle(RE::InputEvent* const& a_event) override
 		{
+			using VR = RE::BSOpenVRControllerDevice::Key;
 			for (auto iter = a_event; iter; iter = iter->next) {
 				const auto event = iter->AsButtonEvent();
 				if (!event) {
@@ -129,11 +132,19 @@ namespace Input
 					}
 					_context = true;
 
-					if (event->IsHeld() && event->HeldDuration() > GetGrabDelay()) {
-						TryGrab();
+					if (event->IsHeld() && event->HeldDuration() > 1.0F) {
+						auto player = RE::PlayerCharacter::GetSingleton();
+						auto hand = player->isRightHandMainHand ? RE::VR_DEVICE::kRightController : RE::VR_DEVICE::kLeftController;
+						if (player) {
+							player->ActivatePickRef(hand);
+						}
+
+						auto& loot = Loot::GetSingleton();
+						loot.Close();
 						_context = false;
 						return;
-					} else if (event->IsUp()) {
+					}
+					else if (event->IsUp()) {
 						TakeStack();
 						_context = false;
 						return;
@@ -154,7 +165,6 @@ namespace Input
 		}
 
 		void TakeStack();
-		void TryGrab();
 
 		stl::observer<const RE::Setting*> _grabDelay{ RE::GetINISetting("fZKeyDelay:Controls") };
 		bool _context{ false };
@@ -207,6 +217,10 @@ namespace Input
 
 		EventResult ProcessEvent(RE::InputEvent* const* a_event, RE::BSTEventSource<RE::InputEvent*>*) override
 		{
+			if (!Loot::GetSingleton().IsShowing()) {
+				return EventResult::kContinue;
+			}
+
 			if (a_event) {
 				for (auto& callback : _callbacks) {
 					(*callback)(*a_event);

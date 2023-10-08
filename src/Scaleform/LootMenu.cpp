@@ -16,6 +16,11 @@ namespace Scaleform
 		loot.Process(*this);
 	}
 
+	void LootMenu::SetShowing(bool isShowing) {
+		auto& loot = Loot::GetSingleton();
+		loot.SetShowing(isShowing);
+	}
+
 	void LootMenu::QueueInventoryRefresh()
 	{
 		auto& loot = Loot::GetSingleton();

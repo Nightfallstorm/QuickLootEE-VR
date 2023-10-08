@@ -19,10 +19,13 @@ public:
 	static bool ShowDBMFound();
 	static bool ShowDBMNew();
 
-	static float WindowX();
-	static float WindowY();
-	static float WindowW();
-	static float WindowH();
+	static float VRScale();
+	static float VRTranslateX();
+	static float VRTranslateY();
+	static float VRTranslateZ();
+	static float VRRotateX();
+	static float VRRotateY();
+	static float VRRotateZ();
 
 private:
 	static void LoadGlobal(const RE::TESGlobal*& global, const char* editor_id);
@@ -49,9 +52,13 @@ private:
 	const RE::TESGlobal* m_show_dbm_found = nullptr;
 	const RE::TESGlobal* m_show_dbm_new = nullptr;
 
-	const RE::TESGlobal* m_window_X = nullptr;
-	const RE::TESGlobal* m_window_Y = nullptr;
-	const RE::TESGlobal* m_window_W = nullptr;
-	const RE::TESGlobal* m_window_H = nullptr;
+	const RE::TESGlobal* m_translate_X = nullptr;
+	const RE::TESGlobal* m_translate_Y = nullptr;
+	const RE::TESGlobal* m_translate_Z = nullptr;
+	const RE::TESGlobal* m_rotate_X = nullptr;
+	const RE::TESGlobal* m_rotate_Y = nullptr;
+	const RE::TESGlobal* m_rotate_Z = nullptr;
+	const RE::TESGlobal* m_vrscale = nullptr;
+	const RE::TESGlobal* m_vrhand = nullptr;
 };
 

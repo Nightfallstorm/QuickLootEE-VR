@@ -37,6 +37,8 @@ public:
 
 	void Close();
 	void Open();
+	bool IsShowing();
+	void SetShowing(bool isShowing);
 
 	void ModSelectedIndex(double a_mod);
 	void ModSelectedPage(double a_mod);
@@ -98,6 +100,7 @@ private:
 	mutable std::mutex _lock;
 	std::vector<Tasklet> _taskQueue;
 	std::atomic_bool _enabled{ true };
+	std::atomic_bool _showing{ false };
 	bool _refreshUI{ false };
 	bool _refreshInventory{ false };
 };

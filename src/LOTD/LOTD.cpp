@@ -16,6 +16,7 @@ void LOTD::LoadLists()
 
 	auto& lotd = GetSingleton();
 
+	// TODO: MergeMapper support on this
 	lotd.m_dbm_new = TESDataHandler->LookupForm<RE::BGSListForm>(0x558285, TCC_PLUGIN_NAME);
 	lotd.m_dbm_found = TESDataHandler->LookupForm<RE::BGSListForm>(0x558286, TCC_PLUGIN_NAME);
 	lotd.m_dbm_displayed = TESDataHandler->LookupForm<RE::BGSListForm>(0x558287, TCC_PLUGIN_NAME);

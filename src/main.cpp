@@ -96,6 +96,7 @@ namespace
 
 			Settings::LoadSettings();
 			LOTD::LoadLists();
+			Events::VRCrosshairRefSource::GetSingleton()->QueueEvalute();
 			break;
 		case SKSE::MessagingInterface::kPostPostLoad:
 		{
@@ -154,7 +155,7 @@ extern "C" DLLEXPORT bool SKSEAPI SKSEPlugin_Query(const SKSE::QueryInterface* a
 	return true;
 }
 
-extern "C" DLLEXPORT bool SKSEAPI SKSEPluginLoad(const SKSE::LoadInterface* a_skse)
+extern "C" DLLEXPORT bool SKSEAPI SKSEPlugin_Load(const SKSE::LoadInterface* a_skse)
 {
 	InitializeLog();
 	logger::info("loaded plugin");
@@ -166,7 +167,7 @@ extern "C" DLLEXPORT bool SKSEAPI SKSEPluginLoad(const SKSE::LoadInterface* a_sk
 	if (!message->RegisterListener(MessageHandler)) {
 		return false;
 	}
-
+	
 	Hooks::Install();
 
 	return true;

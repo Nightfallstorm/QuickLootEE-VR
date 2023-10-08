@@ -6,6 +6,63 @@
 
 namespace Events
 {
+	class VRCrosshairRefSource :
+		public RE::BSTEventSource<SKSE::CrosshairRefEvent>
+	{
+	public:
+		
+		[[nodiscard]] static VRCrosshairRefSource* GetSingleton()
+		{
+			static VRCrosshairRefSource singleton;
+			return std::addressof(singleton);
+		}
+
+		void Evaluate() {
+			QueueEvalute();
+			auto target = GetCurrentTarget();
+			if (target == cachedTarget) {
+				// ignore, the crosshair target hasn't changed yet
+				return;
+			}
+			cachedTarget = target;
+			SKSE::CrosshairRefEvent newEvent;
+			newEvent.crosshairRef = target;
+			SendEvent(&newEvent);
+		}
+
+		void QueueEvalute() {
+			std::thread t([] {
+				// We can't add a task while executing as a task, use a separate thread that will wait and queue up a task later
+				std::this_thread::sleep_for(std::chrono::milliseconds(20));
+				SKSE::GetTaskInterface()->AddTask([]() {
+					Events::VRCrosshairRefSource::GetSingleton()->Evaluate();
+				});
+			});
+			t.detach();
+		}
+
+		RE::TESObjectREFRPtr GetCurrentTarget() {
+			auto hand = RE::PlayerCharacter::GetSingleton()->isRightHandMainHand ? 
+				RE::VR_DEVICE::kRightController : RE::VR_DEVICE::kLeftController;
+			auto crosshair = RE::CrosshairPickData::GetSingleton();
+			auto& currentTargetRef = crosshair->grabPickRef[hand];
+			if (!currentTargetRef || !currentTargetRef.get()) {
+				currentTargetRef = crosshair->targetActor[hand];
+			}
+
+			if (!currentTargetRef || !currentTargetRef.get()) {
+				currentTargetRef = crosshair->target[hand];
+			}
+
+			if (currentTargetRef.get()) {
+				return currentTargetRef.get();
+			}
+
+			return nullptr;
+		}
+		RE::TESObjectREFRPtr cachedTarget;
+	};
+
 	class CrosshairRefManager :
 		public RE::BSTEventSink<SKSE::CrosshairRefEvent>,
 		public RE::BSTEventSink<RE::TESLockChangedEvent>
@@ -19,7 +76,9 @@ namespace Events
 
 		static void Register()
 		{
-			auto crosshair = SKSE::GetCrosshairRefEventSource();
+			// VR Notes: The crosshair ref event is now determined by the hand setting in MCM using our custom source
+			// Our custom source simply checks the pick data every frame and notifies when the crosshair is looking at something new
+			auto crosshair = VRCrosshairRefSource::GetSingleton();
 			if (crosshair) {
 				crosshair->AddEventSink(GetSingleton());
 				logger::info("Registered {}"sv, typeid(SKSE::CrosshairRefEvent).name());

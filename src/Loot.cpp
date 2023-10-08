@@ -27,6 +27,14 @@ void Loot::Open()
 	}
 }
 
+bool Loot::IsShowing() {
+	return _showing;
+}
+
+void Loot::SetShowing(bool isShowing) {
+	_showing = isShowing;
+}
+
 void Loot::ModSelectedIndex(double a_mod)
 {
 	AddTask([a_mod](LootMenu& a_menu) {
@@ -81,9 +89,11 @@ void Loot::AddTask(Tasklet a_task)
 	_taskQueue.push_back(std::move(a_task));
 }
 
+// VR notes: Due to temporary workarounds, the loot menu is always open, but hidden when not actively looking at a container
+// Therefore, we now use a simple boolean to dictate if "IsOpen"
 bool Loot::IsOpen() const
 {
-	return static_cast<bool>(GetMenu());
+	return _showing;
 }
 
 auto Loot::GetMenu() const

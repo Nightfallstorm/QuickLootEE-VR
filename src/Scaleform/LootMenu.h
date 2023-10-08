@@ -10,14 +10,16 @@
 #include "Items/Item.h"
 #include "OpenCloseHandler.h"
 #include "ViewHandler.h"
+#include <numbers>
 
 namespace Scaleform
 {
+	// VR notes: The LootMenu follows a similar setup to WSActivateRollver (VR menu for activation text on hands)
 	class LootMenu :
-		public RE::IMenu
+		public RE::WorldSpaceMenu
 	{
 	private:
-		using super = RE::IMenu;
+		using super = RE::WorldSpaceMenu;
 
 	public:
 		static constexpr std::string_view MenuName() noexcept { return MENU_NAME; }
@@ -133,21 +135,33 @@ namespace Scaleform
 				_itemListImpl[static_cast<std::size_t>(pos)]->TakeAll(*dst);
 				_openCloseHandler.Open();
 
-				if (Settings::DispelInvisibility() && dst->AsMagicTarget()) {
-					dst->AsMagicTarget()->DispelEffectsWithArchetype(RE::EffectArchetypes::ArchetypeID::kInvisibility, false);
+				if (Settings::DispelInvisibility()) {
+					// TODO: THis breaks, fix
+					//
+					//dst->DispelEffectsWithArchetype(RE::EffectArchetypes::ArchetypeID::kInvisibility, false);
 				}
 			}
 
 			QueueInventoryRefresh();
 		}
 
+		RE::BSEventNotifyControl ProcessEvent([[maybe_unused]] const RE::HudModeChangeEvent* a_event, [[maybe_unused]] RE::BSTEventSource<RE::HudModeChangeEvent>* a_eventSource) override
+		{
+			return RE::BSEventNotifyControl::kContinue;
+		}
+
 	protected:
 		using UIResult = RE::UI_MESSAGE_RESULTS;
 
-		LootMenu()
+		LootMenu() :
+			super(0, 0, 1)
 		{
+			using UI_FLAG = RE::UI_MENU_FLAGS; 
 			auto menu = static_cast<super*>(this);
+			menu->menuName = MENU_NAME;
 			menu->depthPriority = -1;
+			menu->menuFlags.set(UI_FLAG::kAlwaysOpen);
+			menu->menuFlags.reset(UI_FLAG::kDisablePauseMenu);
 			auto scaleformManager = RE::BSScaleformManager::GetSingleton();
 			[[maybe_unused]] const auto success =
 				scaleformManager->LoadMovieEx(menu, FILE_NAME, [](RE::GFxMovieDef* a_def) -> void {
@@ -166,7 +180,14 @@ namespace Scaleform
 		LootMenu(const LootMenu&) = default;
 		LootMenu(LootMenu&&) = default;
 
-		~LootMenu() = default;
+		~LootMenu()
+		{
+			super::~WorldSpaceMenu();
+			DestroyMenuNode();
+			_view.reset();
+			_dst.reset();
+			_src.reset();
+		};
 
 		LootMenu& operator=(const LootMenu&) = default;
 		LootMenu& operator=(LootMenu&&) = default;
@@ -174,19 +195,32 @@ namespace Scaleform
 		static stl::owner<RE::IMenu*> Creator() { return new LootMenu(); }
 
 		// IMenu
-		void PostCreate() override { OnOpen(); }
+		void PostCreate() override
+		{
+			super::PostCreate();
+			OnOpen();
+		}
 
 		UIResult ProcessMessage(RE::UIMessage& a_message) override
 		{
 			using Type = RE::UI_MESSAGE_TYPE;
 
+			// VR Notes: WorldSpaceMenu's ProcessMessage(...) will hide the menu node on kHide, and show it on kShow for us
 			switch (*a_message.type) {
 			case Type::kHide:
-				OnClose();
-				return UIResult::kHandled;
-			default:
-				return super::ProcessMessage(a_message);
+				{
+					SetShowing(false);
+					break;
+				}
+			case Type::kShow:
+				{
+					SetShowing(true);
+					RefreshMenuNode(); // We don't *have* to recreate the menu node, we only do it to apply the latest MCM values
+					break;
+				}
 			}
+
+			return super::ProcessMessage(a_message);
 		}
 
 		void AdvanceMovie(float a_interval, std::uint32_t a_currentTime) override
@@ -203,6 +237,24 @@ namespace Scaleform
 		void RefreshPlatform() override
 		{
 			UpdateButtonBar();
+		}
+
+		RE::NiNode* GetMenuParentNode() override
+		{
+			return RE::PlayerCharacter::GetSingleton()->UprightHmdNode.get();  // TODO: Is this the best for the menu to attach to?
+		}
+
+		RE::NiPointer<RE::NiNode> GetAttachingNode()
+		{
+			auto player = RE::PlayerCharacter::GetSingleton();
+
+			return player->isRightHandMainHand ? player->RightWandNode : player->LeftWandNode;
+		}
+
+		void SetTransform() override
+		{
+			GetAttachingNode().get()->AttachChild(menuNode.get(), true);
+			AdjustMenuNode();
 		}
 
 	private:
@@ -268,28 +320,71 @@ namespace Scaleform
 
 		void AdjustPosition()
 		{
+			// VR notes: Too high of a height and width causes clipping where only a portion of the menu is inside the menuNode.
+			// Too low values result in blurriness, likely due to the game expanding the menu to fit the node
+			// 1000 seems the sweet spot for maximum clariy with minimal clipping
 			auto def = _view->GetMovieDef();
 
 			if (!def) {
 				return;
 			}
 
-			const float WindowX = Settings::WindowX();
-			const float WindowY = Settings::WindowY();
-			const float WindowW = Settings::WindowW();
-			const float WindowH = Settings::WindowH();
+			_rootObj.Width(1000.0f);
 
-			_rootObj.X( WindowX > 1.f ? WindowX : _rootObj.X() + def->GetWidth() / 5);
+			_rootObj.Height(1000.0f);
+		}
 
-			if (WindowY > 1.f)
-				_rootObj.Y( WindowY);
+		void AdjustMenuNode()
+		{
+			const float VRScale = Settings::VRScale();
+			const float TranslateX = Settings::VRTranslateX();
+			const float TranslateY = Settings::VRTranslateY();
+			const float TranslateZ = Settings::VRTranslateZ();
+			// We use degrees for the MCM, but internally convert to radians for the EulerAngles
+			const float RotateX = Settings::VRRotateX() * (std::numbers::pi / 180);
+			const float RotateY = Settings::VRRotateY() * (std::numbers::pi / 180);
+			const float RotateZ = Settings::VRRotateZ() * (std::numbers::pi / 180);
 
-			if (WindowW > 1.f)
-				_rootObj.Width( WindowW);
+			menuNode->local.translate = RE::NiPoint3(TranslateX, TranslateY, TranslateZ);
 
-			if (WindowH > 1.f)
-				_rootObj.Height( WindowH);
+			menuNode->local.rotate.EulerAnglesToAxesZXY(RotateX, RotateY, RotateZ);
 
+			menuNode->local.scale = VRScale;
+
+			RE::NiUpdateData data{ 0 };
+			menuNode->Update(data);
+		}
+
+		void DestroyMenuNode() {
+			// Possible overkill, but better safe than sorry
+			if (menuNode.get()) {
+				if (menuNode->parent) {
+					menuNode->parent->DetachChild2(menuNode.get());
+				}
+				auto player = RE::PlayerCharacter::GetSingleton();
+				player->LeftWandNode.get()->DetachChild2(menuNode.get());
+				player->RightWandNode.get()->DetachChild2(menuNode.get());
+				GetMenuParentNode()->DetachChild2(menuNode.get());
+
+				menuNode.reset();
+			}
+		}
+
+		// Recreates the menu node with the new data
+		void RefreshMenuNode()
+		{
+			// First, remove and destroy the old node from the parents if it exists
+			DestroyMenuNode();
+
+			// Adjust Position data before creating the new node
+			AdjustPosition();
+
+			// Create and attach the new node
+			SetupMenuNode();
+			GetAttachingNode().get()->AttachChild(menuNode.get(), true);
+
+			// Adjust the new node data
+			AdjustMenuNode();
 		}
 
 		void Close();
@@ -327,6 +422,7 @@ namespace Scaleform
 			}
 
 			AdjustPosition();
+			AdjustMenuNode();
 			_rootObj.Visible(false);
 
 			_title.AutoSize(CLIK::Object{ "left" });
@@ -349,6 +445,7 @@ namespace Scaleform
 		void ProcessDelegate();
 		void QueueInventoryRefresh();
 		void QueueUIRefresh();
+		void SetShowing(bool isShowing);
 
 		void RestoreIndex(std::ptrdiff_t a_oldIdx)
 		{
@@ -377,45 +474,7 @@ namespace Scaleform
 
 		void UpdateButtonBar()
 		{
-			if (!_view) {
-				return;
-			}
-
-			const bool stealing = WouldBeStealing();
-			const std::array mappings{
-				std::make_tuple(stealing ? "sSteal"sv : "sTake"sv, "Activate"sv, stealing),
-				std::make_tuple("sSearch"sv, "Ready Weapon"sv, stealing)
-			};
-
-			_buttonBarProvider.ClearElements();
-			auto gmst = RE::GameSettingCollection::GetSingleton();
-			const srell::regex pattern("<.*>(.*)<.*>"s, srell::regex_constants::ECMAScript);
-			for (std::size_t i = 0; i < mappings.size(); ++i) {
-				const auto& mapping = mappings[i];
-
-				auto setting = gmst->GetSetting(std::get<0>(mapping).data());
-				std::string label = setting ? setting->GetString() : "<undefined>"s;
-				srell::smatch matches;
-				if (srell::regex_match(label, matches, pattern)) {
-					if (matches.size() >= 2) {
-						assert(matches.size() == 2);
-						label = matches[1].str();
-					}
-				}
-
-				const auto index =
-					static_cast<std::ptrdiff_t>(
-						Input::ControlMap()(std::get<1>(mapping)));
-				const auto stolen = std::get<2>(mapping);
-
-				RE::GFxValue obj;
-				_view->CreateObject(std::addressof(obj));
-				obj.SetMember("label", { static_cast<std::string_view>(label) });
-				obj.SetMember("index", { index });
-				obj.SetMember("stolen", { stolen });
-				_buttonBarProvider.PushBack(obj);
-			}
-			_buttonBar.InvalidateData();
+			// VR Notes: The button bar works fine, but it would be a lot of work to get the correct VR buttons to show
 		}
 
 		void UpdateInfoBar()
@@ -462,11 +521,11 @@ namespace Scaleform
 		void UpdateWeight()
 		{
 			auto dst = _dst.get();
-			if (dst && dst->AsActorValueOwner()) {
+			if (dst) {
 				auto inventoryWeight =
 					static_cast<std::ptrdiff_t>(dst->GetWeightInContainer());
 				auto carryWeight =
-					static_cast<std::ptrdiff_t>(dst->AsActorValueOwner()->GetActorValue(RE::ActorValue::kCarryWeight));
+					static_cast<std::ptrdiff_t>(dst->GetActorValue(RE::ActorValue::kCarryWeight));
 				auto text = std::to_string(inventoryWeight);
 				text += " / ";
 				text += std::to_string(carryWeight);

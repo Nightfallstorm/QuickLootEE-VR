@@ -3,20 +3,24 @@
 void Settings::LoadSettings()
 {
 	auto& settings = GetSingleton();
-	LoadGlobal(settings.m_close_in_combat             , "QLEECloseInCombat");
-	LoadGlobal(settings.m_close_when_empty            , "QLEECloseWhenEmpty");
-	LoadGlobal(settings.m_dispel_invis                , "QLEEDispelInvisibility");
+	LoadGlobal(settings.m_close_in_combat, "QLEECloseInCombat");
+	LoadGlobal(settings.m_close_when_empty, "QLEECloseWhenEmpty");
+	LoadGlobal(settings.m_dispel_invis, "QLEEDispelInvisibility");
 	LoadGlobal(settings.m_open_when_container_unlocked, "QLEEOpenWhenContainerUnlocked");
-	LoadGlobal(settings.m_show_book_read              , "QLEEIconShowBookRead");
-	LoadGlobal(settings.m_show_enchanted              , "QLEEIconShowEnchanted");
-	LoadGlobal(settings.m_show_dbm_displayed          , "QLEEIconShowDBMDisplayed");
-	LoadGlobal(settings.m_show_dbm_found              , "QLEEIconShowDBMFound");
-	LoadGlobal(settings.m_show_dbm_new                , "QLEEIconShowDBMNew");
-	LoadGlobal(settings.m_disable_for_animals         , "QLEEDisableForAnimals");
-	LoadGlobal(settings.m_window_X                    , "QLEEWindowX");
-	LoadGlobal(settings.m_window_Y                    , "QLEEWindowY");
-	LoadGlobal(settings.m_window_W                    , "QLEEWindowW");
-	LoadGlobal(settings.m_window_H                    , "QLEEWindowH");
+	LoadGlobal(settings.m_show_book_read, "QLEEIconShowBookRead");
+	LoadGlobal(settings.m_show_enchanted, "QLEEIconShowEnchanted");
+	LoadGlobal(settings.m_show_dbm_displayed, "QLEEIconShowDBMDisplayed");
+	LoadGlobal(settings.m_show_dbm_found, "QLEEIconShowDBMFound");
+	LoadGlobal(settings.m_show_dbm_new, "QLEEIconShowDBMNew");
+	LoadGlobal(settings.m_disable_for_animals, "QLEEDisableForAnimals");
+	LoadGlobal(settings.m_vrhand, "QLEEVRHand");
+	LoadGlobal(settings.m_vrscale, "QLEEVRScale");
+	LoadGlobal(settings.m_translate_X, "QLEEVRTranslateX");
+	LoadGlobal(settings.m_translate_Y, "QLEEVRTranslateY");
+	LoadGlobal(settings.m_translate_Z, "QLEEVRTranslateZ");
+	LoadGlobal(settings.m_rotate_X, "QLEEVRRotateX");
+	LoadGlobal(settings.m_rotate_Y, "QLEEVRRotateY");
+	LoadGlobal(settings.m_rotate_Z, "QLEEVRRotateZ");
 }
 
 bool Settings::CloseInCombat()
@@ -79,28 +83,46 @@ bool Settings::ShowDBMNew()
 	return settings.m_show_dbm_new && settings.m_show_dbm_new->value > 0;
 }
 
-float Settings::WindowX()
+float Settings::VRScale()
 {
 	auto& settings = GetSingleton();
-	return settings.m_window_X ? settings.m_window_X->value : 0.f;
+	return settings.m_vrscale ? settings.m_vrscale->value : 0.f;
 }
 
-float Settings::WindowY()
+float Settings::VRTranslateX()
 {
 	auto& settings = GetSingleton();
-	return settings.m_window_Y ? settings.m_window_Y->value : 0.f;
+	return settings.m_translate_X ? settings.m_translate_X->value : 0.f;
 }
 
-float Settings::WindowW()
+float Settings::VRTranslateY()
 {
 	auto& settings = GetSingleton();
-	return settings.m_window_W ? settings.m_window_W->value : 0.f;
+	return settings.m_translate_Y ? settings.m_translate_Y->value : 0.f;
 }
 
-float Settings::WindowH()
+float Settings::VRTranslateZ()
 {
 	auto& settings = GetSingleton();
-	return settings.m_window_H ? settings.m_window_H->value : 0.f;
+	return settings.m_translate_Z ? settings.m_translate_Z->value : 0.f;
+}
+
+float Settings::VRRotateX()
+{
+	auto& settings = GetSingleton();
+	return settings.m_rotate_X ? settings.m_rotate_X->value : 0.f;
+}
+
+float Settings::VRRotateY()
+{
+	auto& settings = GetSingleton();
+	return settings.m_rotate_Y ? settings.m_rotate_Y->value : 0.f;
+}
+
+float Settings::VRRotateZ()
+{
+	auto& settings = GetSingleton();
+	return settings.m_rotate_Z ? settings.m_rotate_Z->value : 0.f;
 }
 
 void Settings::LoadGlobal(const RE::TESGlobal*& global, const char* editor_id)

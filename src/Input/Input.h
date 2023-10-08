@@ -13,6 +13,7 @@ namespace Input
 			kArrowKeys,
 			kMouseWheel,
 			kDPAD,
+			kVR,
 			kTotal
 		};
 
@@ -116,12 +117,13 @@ namespace Input
 				using Gamepad = RE::BSWin32GamepadDevice::Key;
 				using Keyboard = RE::BSWin32KeyboardDevice::Key;
 				using Mouse = RE::BSWin32MouseDevice::Key;
+				using VR = RE::BSOpenVRControllerDevice::Key;
 
 				insert<OptionalGroup>(Group::kPageKeys, Device::kKeyboard, { Keyboard::kPageUp, Keyboard::kPageDown });
 				insert<OptionalGroup>(Group::kArrowKeys, Device::kKeyboard, { Keyboard::kUp, Keyboard::kDown, Keyboard::kLeft, Keyboard::kRight });
 
-				insert<MandatoryGroup>(Group::kMouseWheel, Device::kMouse, { Mouse::kWheelUp, Mouse::kWheelDown });
-				insert<MandatoryGroup>(Group::kDPAD, Device::kGamepad, { Gamepad::kUp, Gamepad::kDown, Gamepad::kLeft, Gamepad::kRight });
+				insert<MandatoryGroup>(Group::kVR, Device::kVRLeft, { VR::kTrigger });
+				insert<MandatoryGroup>(Group::kVR, Device::kVRRight, { VR::kTrigger });
 			}
 
 			void operator()(std::size_t a_device, RE::ControlMap::UserEventMapping& a_userEvent) const
