@@ -33,7 +33,7 @@ namespace Events
 		void QueueEvalute() {
 			std::thread t([] {
 				// We can't add a task while executing as a task, use a separate thread that will wait and queue up a task later
-				std::this_thread::sleep_for(std::chrono::milliseconds(20));
+				std::this_thread::sleep_for(std::chrono::milliseconds(30));
 				SKSE::GetTaskInterface()->AddTask([]() {
 					Events::VRCrosshairRefSource::GetSingleton()->Evaluate();
 				});

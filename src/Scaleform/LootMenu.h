@@ -132,13 +132,12 @@ namespace Scaleform
 			auto dst = _dst.get();
 			auto pos = static_cast<std::ptrdiff_t>(_itemList.SelectedIndex());
 			if (dst && 0 <= pos && pos < std::ssize(_itemListImpl)) {
-				_itemListImpl[static_cast<std::size_t>(pos)]->TakeAll(*dst);
 				_openCloseHandler.Open();
+				_itemListImpl[static_cast<std::size_t>(pos)]->TakeAll(*dst);
+				
 
 				if (Settings::DispelInvisibility()) {
-					// TODO: THis breaks, fix
-					//
-					//dst->DispelEffectsWithArchetype(RE::EffectArchetypes::ArchetypeID::kInvisibility, false);
+					dst->DispelEffectsWithArchetype(RE::EffectArchetypes::ArchetypeID::kInvisibility, false);
 				}
 			}
 

@@ -27,84 +27,34 @@ namespace Input
 			using Device = RE::INPUT_DEVICE;
 
 			for (auto iter = a_event; iter; iter = iter->next) {
-				auto event = iter->AsButtonEvent();
-				if (event && CanProcess(*event) && ProcessInput(*event)) {
-					return;
+				auto event = iter->AsIDEvent();
+				if (!event || event->GetEventType() != RE::INPUT_EVENT_TYPE::kThumbstick) {
+					continue;
+				}
+				auto thumbStickEvent = static_cast<RE::ThumbstickEvent*>(event);
+				auto isMainHand = RE::PlayerCharacter::GetSingleton()->isRightHandMainHand ?
+				                      thumbStickEvent->IsRight() :
+				                      thumbStickEvent->IsLeft();
+				if (!isMainHand) {
+					continue;
+				}
+
+				if (!hasScrolled && std::abs(thumbStickEvent->yValue) > 0.9) {
+					hasScrolled = true;
+					if (thumbStickEvent->yValue > 0) {
+						Loot::GetSingleton().ModSelectedIndex(-1.0);
+					} else {
+						Loot::GetSingleton().ModSelectedIndex(1.0);
+					}
+
+				} else if (hasScrolled && std::abs(thumbStickEvent->yValue) < 0.1) {
+					hasScrolled = false;
 				}
 			}
 		}
 
 	private:
-		using mapping_type = std::map<std::uint32_t, std::function<void()>>;
-
-		class ScrollTimer
-		{
-		public:
-			using value_type = double;
-
-			constexpr void advance() noexcept
-			{
-				if (_doDelay) {
-					_timer += _delay;
-					_doDelay = false;
-				} else {
-					_timer += _speed;
-				}
-			}
-
-			[[nodiscard]] constexpr value_type get() const noexcept { return _timer; }
-
-			constexpr void reset() noexcept
-			{
-				_timer = 0.0;
-				_doDelay = true;
-			}
-
-		private:
-			value_type _timer{ 0.0 };
-			value_type _delay{ 0.5 };
-			value_type _speed{ 0.05 };
-			bool _doDelay{ true };
-		};
-
-		[[nodiscard]] bool CanProcess(const RE::ButtonEvent& a_event)
-		{
-			using Device = RE::INPUT_DEVICE;
-			switch (a_event.GetDevice()) {
-			case Device::kMouse:
-				return true;
-			default:
-				if (a_event.IsPressed() && a_event.HeldDuration() < _scrollTimer.get()) {
-					return false;
-				} else if (a_event.IsUp()) {
-					_scrollTimer.reset();
-					return false;
-				} else {
-					_scrollTimer.advance();
-					return true;
-				}
-			}
-		}
-
-		[[nodiscard]] bool ProcessInput(const RE::ButtonEvent& a_event)
-		{
-			const auto device = a_event.GetDevice();
-			if (0 <= device && device < _mappings.size()) {
-				const auto& mappings = _mappings[device];
-				const auto it = mappings.find(a_event.GetIDCode());
-				if (it != mappings.end()) {
-					it->second();
-					return true;
-				}
-			} else {
-				assert(false);
-			}
-
-			return false;
-		}
-
-		std::array<mapping_type, RE::INPUT_DEVICES::kTotal> _mappings;
-		ScrollTimer _scrollTimer;
+		bool hasScrolled = false;
 	};
 
 	class TakeHandler :
@@ -126,25 +76,33 @@ namespace Input
                         controlMap->GetMappedKey("Activate", event->GetDevice()) :
                         RE::ControlMap::kInvalid;
 
+				const auto openIdCode =
+					controlMap ?
+						controlMap->GetMappedKey("Ready Weapon", event->GetDevice()) :
+						RE::ControlMap::kInvalid;
+
+				if (event->GetIDCode() == openIdCode) {
+					if (event->IsUp()) {
+						auto player = RE::PlayerCharacter::GetSingleton();
+						if (!player) {
+							return;
+						}
+						auto hand = player->isRightHandMainHand ? RE::VR_DEVICE::kRightController : RE::VR_DEVICE::kLeftController;
+						player->ActivatePickRef(hand);
+
+						auto& loot = Loot::GetSingleton();
+						loot.Close();
+						return;
+					}
+				}
+
 				if (event->GetIDCode() == idCode) {
 					if (!_context && !event->IsDown()) {
 						continue;
 					}
 					_context = true;
 
-					if (event->IsHeld() && event->HeldDuration() > 1.0F) {
-						auto player = RE::PlayerCharacter::GetSingleton();
-						auto hand = player->isRightHandMainHand ? RE::VR_DEVICE::kRightController : RE::VR_DEVICE::kLeftController;
-						if (player) {
-							player->ActivatePickRef(hand);
-						}
-
-						auto& loot = Loot::GetSingleton();
-						loot.Close();
-						_context = false;
-						return;
-					}
-					else if (event->IsUp()) {
+					if (event->IsUp()) {
 						TakeStack();
 						_context = false;
 						return;

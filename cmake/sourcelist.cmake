@@ -12,4 +12,5 @@ set(sources ${sources}
 	src/Settings.cpp
 	src/ViewHandler.cpp
 	src/LOTD/LOTD.cpp
+	src/MergeMapperPluginApi.cpp
 )

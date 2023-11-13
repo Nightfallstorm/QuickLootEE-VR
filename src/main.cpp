@@ -2,10 +2,11 @@
 #include "Events/Events.h"
 #include "Hooks.h"
 #include "Input/Input.h"
-#include "Loot.h"
-#include "Scaleform/Scaleform.h"
-#include "LOTD/LOTD.h"
 #include "Items/GFxItem.h"
+#include "LOTD/LOTD.h"
+#include "Loot.h"
+#include "MergeMapperPluginAPI.h"
+#include "Scaleform/Scaleform.h"
 
 namespace
 {
@@ -99,16 +100,22 @@ namespace
 			Events::VRCrosshairRefSource::GetSingleton()->QueueEvalute();
 			break;
 		case SKSE::MessagingInterface::kPostPostLoad:
-		{
-			Completionist_Integration::RegisterListener();
-		}
-		break;
+			{
+				Completionist_Integration::RegisterListener();
+				MergeMapperPluginAPI::GetMergeMapperInterface001();  // Request interface
+				if (g_mergeMapperInterface) {                        // Use Interface
+					const auto version = g_mergeMapperInterface->GetBuildNumber();
+					logger::info("Got MergeMapper interface buildnumber {}", version);
+				} else {
+					logger::info("MergeMapper not detected");
+				}
+			}
+			break;
 		}
 	}
 
 	void InitializeLog()
 	{
-
 		auto path = logger::log_directory();
 		if (!path) {
 			stl::report_and_fail("Failed to find standard logging directory"sv);
@@ -116,7 +123,6 @@ namespace
 
 		*path /= fmt::format("{}.log", "quicklootee-vr");
 		auto sink = std::make_shared<spdlog::sinks::basic_file_sink_mt>(path->string(), true);
-
 
 #ifndef NDEBUG
 		const auto level = spdlog::level::trace;
@@ -146,8 +152,7 @@ extern "C" DLLEXPORT bool SKSEAPI SKSEPlugin_Query(const SKSE::QueryInterface* a
 
 	const auto ver = a_skse->RuntimeVersion();
 	if (ver <
-		SKSE::RUNTIME_VR_1_4_15
-	) {
+		SKSE::RUNTIME_VR_1_4_15) {
 		logger::critical(FMT_STRING("Unsupported runtime version {}"), ver.string());
 		return false;
 	}
@@ -167,7 +172,7 @@ extern "C" DLLEXPORT bool SKSEAPI SKSEPlugin_Load(const SKSE::LoadInterface* a_s
 	if (!message->RegisterListener(MessageHandler)) {
 		return false;
 	}
-	
+
 	Hooks::Install();
 
 	return true;

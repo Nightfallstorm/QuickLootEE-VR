@@ -32,4 +32,5 @@ set(headers ${headers}
 	src/Settings.h
 	src/ViewHandler.h
 	src/LOTD/LOTD.h
+	src/MergeMapperPluginApi.h
 )
