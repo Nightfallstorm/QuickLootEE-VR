@@ -32,10 +32,8 @@ namespace Input
 					continue;
 				}
 				auto thumbStickEvent = static_cast<RE::ThumbstickEvent*>(event);
-				auto isMainHand = RE::PlayerCharacter::GetSingleton()->isRightHandMainHand ?
-				                      thumbStickEvent->IsRight() :
-				                      thumbStickEvent->IsLeft();
-				if (!isMainHand) {
+
+				if (!thumbStickEvent->IsMainHand()) {
 					continue;
 				}
 
@@ -73,8 +71,8 @@ namespace Input
 				const auto controlMap = RE::ControlMap::GetSingleton();
 				const auto idCode =
 					controlMap ?
-                        controlMap->GetMappedKey("Activate", event->GetDevice()) :
-                        RE::ControlMap::kInvalid;
+						controlMap->GetMappedKey("Activate", event->GetDevice()) :
+						RE::ControlMap::kInvalid;
 
 				const auto openIdCode =
 					controlMap ?

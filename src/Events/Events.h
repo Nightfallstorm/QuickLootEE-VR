@@ -158,6 +158,10 @@ namespace Events
 				return false;
 			}
 
+			if (Settings::CloseWhenEmpty() && a_ref.get()->GetInventoryCount() <= 0) {
+				return false;
+			}
+
 			if (obj->Is(RE::FormType::Activator)) {
 				_cachedAshPile = a_ref->extraList.GetAshPileRef();
 				return CanOpen(_cachedAshPile.get());
