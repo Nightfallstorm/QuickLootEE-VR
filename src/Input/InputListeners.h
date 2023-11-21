@@ -74,33 +74,22 @@ namespace Input
 						controlMap->GetMappedKey("Activate", event->GetDevice()) :
 						RE::ControlMap::kInvalid;
 
-				const auto openIdCode =
-					controlMap ?
-						controlMap->GetMappedKey("Ready Weapon", event->GetDevice()) :
-						RE::ControlMap::kInvalid;
-
-				if (event->GetIDCode() == openIdCode) {
-					if (event->IsUp()) {
-						auto player = RE::PlayerCharacter::GetSingleton();
-						if (!player) {
-							return;
-						}
-						auto hand = player->isRightHandMainHand ? RE::VR_DEVICE::kRightController : RE::VR_DEVICE::kLeftController;
-						player->ActivatePickRef(hand);
-
-						auto& loot = Loot::GetSingleton();
-						loot.Close();
-						return;
-					}
-				}
-
 				if (event->GetIDCode() == idCode) {
 					if (!_context && !event->IsDown()) {
 						continue;
 					}
 					_context = true;
-
-					if (event->IsUp()) {
+					if (event->IsHeld() && event->HeldDuration() > 1.0F) {
+						auto player = RE::PlayerCharacter::GetSingleton();
+						auto hand = player->isRightHandMainHand ? RE::VR_DEVICE::kRightController : RE::VR_DEVICE::kLeftController;
+						if (player) {
+							player->ActivatePickRef(hand);
+						}
+						auto& loot = Loot::GetSingleton();
+						loot.Close();
+						_context = false;
+						return;
+					} else if (event->IsUp()) {
 						TakeStack();
 						_context = false;
 						return;

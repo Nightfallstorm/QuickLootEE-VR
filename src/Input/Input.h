@@ -69,7 +69,7 @@ namespace Input
 				_mappings{}
 			{
 				insert("Activate"sv);
-				insert("Ready Weapon"sv);
+				//insert("Ready Weapon"sv);
 			}
 
 			void operator()(std::size_t a_device, RE::ControlMap::UserEventMapping& a_userEvent) const
