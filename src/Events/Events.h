@@ -173,7 +173,7 @@ namespace Events
 				//auto dobj = RE::BGSDefaultObjectManager::GetSingleton();
 				//auto animal_keyword = dobj->GetObject<RE::BGSKeyword>(RE::DEFAULT_OBJECT::kKeywordAnimal);
 
-				if (!actor->IsDead() 
+				if (!(actor->IsDead() && !Settings::DisableForCorpse())
 					|| actor->IsSummoned())
 					//|| (disable_for_animals && actor->GetRace()->HasKeyword(animal_keyword)))
 				{

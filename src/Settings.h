@@ -12,6 +12,7 @@ public:
 	static bool DispelInvisibility();
 	static bool OpenWhenContainerUnlocked();
 	static bool DisableForAnimals();
+	static bool DisableForCorpse();
 
 	static bool ShowBookRead();
 	static bool ShowEnchanted();
@@ -60,5 +61,7 @@ private:
 	const RE::TESGlobal* m_rotate_Z = nullptr;
 	const RE::TESGlobal* m_vrscale = nullptr;
 	const RE::TESGlobal* m_vrhand = nullptr;
+
+	const RE::TESGlobal* m_disableForCorpse = nullptr;
 };
 

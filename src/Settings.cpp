@@ -21,6 +21,7 @@ void Settings::LoadSettings()
 	LoadGlobal(settings.m_rotate_X, "QLEEVRRotateX");
 	LoadGlobal(settings.m_rotate_Y, "QLEEVRRotateY");
 	LoadGlobal(settings.m_rotate_Z, "QLEEVRRotateZ");
+	LoadGlobal(settings.m_disableForCorpse, "QLEEDisableForCorpse");
 }
 
 bool Settings::CloseInCombat()
@@ -51,6 +52,12 @@ bool Settings::DisableForAnimals()
 {
 	auto& settings = GetSingleton();
 	return settings.m_disable_for_animals && settings.m_disable_for_animals->value > 0;
+}
+
+bool Settings::DisableForCorpse()
+{
+	auto& settings = GetSingleton();
+	return settings.m_disableForCorpse && settings.m_disableForCorpse->value > 0;
 }
 
 bool Settings::ShowBookRead()
