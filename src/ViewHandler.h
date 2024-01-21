@@ -123,6 +123,8 @@ private:
 		}
 	}
 
+	static_assert(offsetof(RE::MenuControls, beastForm) == 0x89);
+
 	void Enable()
 	{
 		RE::GPtr safety{ _menu };
