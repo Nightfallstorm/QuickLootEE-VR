@@ -120,18 +120,14 @@ static bool comp_installed{};
 
 namespace Items
 {
-	GFxItem::GFxItem(std::ptrdiff_t a_count, bool a_stealing, SKSE::stl::observer<RE::InventoryEntryData*> a_item)
-		: _src(a_item)
-		, _count(a_count)
-		, _stealing(a_stealing)
+	GFxItem::GFxItem(std::ptrdiff_t a_count, bool a_stealing, SKSE::stl::observer<RE::InventoryEntryData*> a_item) :
+		_src(a_item), _count(a_count), _stealing(a_stealing)
 	{
 		assert(a_item != nullptr);
 	}
 
-	GFxItem::GFxItem(std::ptrdiff_t a_count, bool a_stealing, std::span<const RE::ObjectRefHandle> a_items)
-		: _src(a_items)
-		, _count(a_count)
-		, _stealing(a_stealing)
+	GFxItem::GFxItem(std::ptrdiff_t a_count, bool a_stealing, std::span<const RE::ObjectRefHandle> a_items) :
+		_src(a_items), _count(a_count), _stealing(a_stealing)
 	{}
 
 	int GFxItem::Compare(const GFxItem& a_rhs) const
@@ -164,19 +160,16 @@ namespace Items
 
 	const std::string& GFxItem::GetDisplayName() const
 	{
-		if (comp_installed)
-		{
+		if (comp_installed) {
 			comp_response = std::nullopt;
 
-			if (auto* messageInterface = SKSE::GetMessagingInterface())
-			{
+			if (auto* messageInterface = SKSE::GetMessagingInterface()) {
 				CompletionistRequestEE request{ GetFormID() };
 				messageInterface->Dispatch(1, &request, sizeof(request), "Completionist");
 				//logger::info("Completionist is installed, Message Sent For - {}"sv, GetFormID());
 			}
 
-			if (comp_response && comp_response->m_formId == GetFormID() && comp_response->m_displayname != "")
-			{
+			if (comp_response && comp_response->m_formId == GetFormID() && comp_response->m_displayname != "") {
 				//logger::info("Completionist Message Receieved With Matching FormID and Valid Name");
 				return comp_response->m_displayname;
 			}
@@ -188,12 +181,41 @@ namespace Items
 
 		std::string result;
 		switch (_src.index()) {
-		case kInventory: 
-		{
-			const char* display_name = std::get<kInventory>(_src)->GetDisplayName();
-			result = display_name ? display_name : ""sv;
-			break;
-		}
+		case kInventory:
+			{
+				const char* display_name = std::get<kInventory>(_src)->GetDisplayName();
+				result = display_name ? display_name : ""sv;
+
+				if (result.empty() == false) {
+					RE::InventoryEntryData* entryData = std::get<kInventory>(_src);
+
+					if (entryData != nullptr) {
+						if (entryData->extraLists != nullptr) {
+							for (auto& xList : *entryData->extraLists) {
+								if (xList) {
+									const auto xHealth = xList->GetByType<ExtraHealth>();
+									if (xHealth) {
+										float remainder = fmodf(xHealth->health * 10.0f, 1.0f);
+										if (remainder > 0.00000001f) {
+											float TotalDamage = remainder * 10000.0f;
+
+											float RemainingHealthF = std::clamp((100.0f - TotalDamage), 0.0f, 100.0f);
+
+											if (RemainingHealthF >= 0.0f && RemainingHealthF < 100.0f) {
+												result += " [";
+												result += std::to_string((int)floor(RemainingHealthF));
+												result += "%]";
+											}
+										}
+									}
+								}
+							}
+						}
+					}
+				}
+
+				break;
+			}
 		case kGround:
 			result = ""sv;
 			for (const auto& handle : std::get<kGround>(_src)) {
@@ -1102,37 +1124,32 @@ namespace Items
 
 		switch (_src.index()) {
 		case kInventory:
-		{
-			item_inventory_entry = std::get<kInventory>(_src);
-			item_form = item_inventory_entry ? item_inventory_entry->GetObject() : nullptr;
-			break;
-		}
-		case kGround:
-		{
-			for (const auto& handle : std::get<kGround>(_src)) {
-				if (!handle.get())
-					continue;
-				item_refr = handle.get().get();
-				item_form = item_refr;
+			{
+				item_inventory_entry = std::get<kInventory>(_src);
+				item_form = item_inventory_entry ? item_inventory_entry->GetObject() : nullptr;
+				break;
 			}
-			break;
-		}
+		case kGround:
+			{
+				for (const auto& handle : std::get<kGround>(_src)) {
+					if (!handle.get())
+						continue;
+					item_refr = handle.get().get();
+					item_form = item_refr;
+				}
+				break;
+			}
 		default:
 			assert(false);
 		};
 
-		if (!item_form) 
-		{
+		if (!item_form) {
 			return result;
 		}
 
 		const auto item_form_type = item_form->GetFormType();
 
-		if (item_form_type != RE::FormType::Weapon 
-			&& item_form_type != RE::FormType::Armor 
-			&& item_form_type != RE::FormType::Ammo 
-			&& item_form_type != RE::FormType::Projectile)
-		{
+		if (item_form_type != RE::FormType::Weapon && item_form_type != RE::FormType::Armor && item_form_type != RE::FormType::Ammo && item_form_type != RE::FormType::Projectile) {
 			return result;
 		}
 
@@ -1158,18 +1175,18 @@ namespace Items
 
 			if ((enchantment->formFlags & RE::TESForm::RecordFlags::kKnown) == RE::TESForm::RecordFlags::kKnown) {
 				return MagicDisallowEnchanting(enchantment) ? EnchantmentType::CannotDisenchant : EnchantmentType::Known;
-			} 
-			
+			}
+
 			if (MagicDisallowEnchanting(enchantment)) {
 				return EnchantmentType::CannotDisenchant;
-			} 
-			
+			}
+
 			auto baseEnchantment = static_cast<RE::EnchantmentItem*>(enchantment->data.baseEnchantment);
 			if (baseEnchantment) {
 				if ((baseEnchantment->formFlags & RE::TESForm::RecordFlags::kKnown) == RE::TESForm::RecordFlags::kKnown) {
 					return MagicDisallowEnchanting(baseEnchantment) ? EnchantmentType::CannotDisenchant : EnchantmentType::Known;
-				} 
-				
+				}
+
 				if (MagicDisallowEnchanting(baseEnchantment)) {
 					return EnchantmentType::CannotDisenchant;
 				}
@@ -1180,8 +1197,8 @@ namespace Items
 		// know the enchantment
 		if (wasExtra) {
 			return EnchantmentType::Known;
-		} 
-		
+		}
+
 		if (enchantable) {
 			return MagicDisallowEnchanting(keyWordForm) ? EnchantmentType::CannotDisenchant : result;
 		}
@@ -1213,22 +1230,17 @@ namespace Completionist_Integration
 {
 	void RegisterListener()
 	{
-		if (WinAPI::GetModuleHandle(L"Completionist"))
-		{
+		if (WinAPI::GetModuleHandle(L"Completionist")) {
 			comp_installed = true;
 			logger::info("Completionist is installed, registering listener"sv);
 			auto* messageInterface = SKSE::GetMessagingInterface();
-			messageInterface->RegisterListener("Completionist", [](SKSE::MessagingInterface::Message* a_msg)
-			{
-				if (!a_msg || a_msg->type != 2 || !a_msg->data)
-				{
+			messageInterface->RegisterListener("Completionist", [](SKSE::MessagingInterface::Message* a_msg) {
+				if (!a_msg || a_msg->type != 2 || !a_msg->data) {
 					return;
 				}
 				comp_response = *static_cast<CompletionistResponseEE*>(a_msg->data);
 			});
-		}
-		else
-		{
+		} else {
 			comp_installed = false;
 		}
 	}
