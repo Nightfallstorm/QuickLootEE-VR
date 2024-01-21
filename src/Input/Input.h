@@ -122,8 +122,12 @@ namespace Input
 				insert<OptionalGroup>(Group::kPageKeys, Device::kKeyboard, { Keyboard::kPageUp, Keyboard::kPageDown });
 				insert<OptionalGroup>(Group::kArrowKeys, Device::kKeyboard, { Keyboard::kUp, Keyboard::kDown, Keyboard::kLeft, Keyboard::kRight });
 
-				insert<MandatoryGroup>(Group::kVR, Device::kVRLeft, { VR::kTrigger });
-				insert<MandatoryGroup>(Group::kVR, Device::kVRRight, { VR::kTrigger });
+				insert<MandatoryGroup>(Group::kVR, Device::kOculusPrimary, { VR::kTrigger });
+				insert<MandatoryGroup>(Group::kVR, Device::kOculusSecondary, { VR::kTrigger });
+				insert<MandatoryGroup>(Group::kVR, Device::kVivePrimary, { VR::kTrigger });
+				insert<MandatoryGroup>(Group::kVR, Device::kViveSecondary, { VR::kTrigger });
+				insert<MandatoryGroup>(Group::kVR, Device::kWMRPrimary, { VR::kTrigger });
+				insert<MandatoryGroup>(Group::kVR, Device::kWMRSecondary, { VR::kTrigger });
 			}
 
 			void operator()(std::size_t a_device, RE::ControlMap::UserEventMapping& a_userEvent) const
